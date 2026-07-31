@@ -1,0 +1,9 @@
+[package]
+name = "r-pkg"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+alpm = "5.0.2"
+anyhow = "1.0.104"
+iced = "0.14.0"
