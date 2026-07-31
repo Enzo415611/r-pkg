@@ -1,3 +1,3 @@
 mod pkg_list_view;
-mod selected_pkg_view;
+mod pkg_selected_view;
 pub mod view;

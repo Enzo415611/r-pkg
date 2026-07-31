@@ -1,22 +1,29 @@
 mod alpm;
+mod update;
 mod view;
 
-use ::alpm::Alpm;
-use iced::Task;
+use iced::{
+    Task,
+    widget::pane_grid::{self, Pane},
+};
 
-use crate::alpm::AlpmPkg;
+use crate::{
+    alpm::{AlpmPkg, AlpmState},
+    view::view::UiState,
+};
 
 #[derive(Debug)]
 struct AppState {
-    alpm: Alpm,
-    start_pkgs: Vec<AlpmPkg>,
-    pkg_selected: AlpmPkg,
+    ui_state: UiState,
+    alpm_state: AlpmState,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     Init,
     PkgSelected(AlpmPkg),
+    ResizePane(pane_grid::ResizeEvent),
+    ClonePane(Option<Pane>),
 }
 
 fn main() -> iced::Result {
@@ -27,27 +34,10 @@ impl AppState {
     fn new() -> (Self, Task<Message>) {
         (
             Self {
-                alpm: Alpm::new("/", "/var/lib/pacman").unwrap(),
-                start_pkgs: vec![],
-                pkg_selected: AlpmPkg::default(),
+                alpm_state: AlpmState::default(),
+                ui_state: UiState::default(),
             },
             Task::batch(vec![Task::done(Message::Init)]),
         )
-    }
-
-    fn update(&mut self, message: Message) -> Task<Message> {
-        match message {
-            Message::Init => {
-                if let Ok(pkgs) = self.sync_alpm_dbs() {
-                    self.start_pkgs = pkgs;
-                }
-                Task::none()
-            }
-            Message::PkgSelected(pkg_name) => {
-                println!("{:?}", pkg_name);
-                self.pkg_selected = pkg_name;
-                Task::none()
-            }
-        }
     }
 }

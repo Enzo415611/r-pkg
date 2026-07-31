@@ -1,8 +1,25 @@
 use std::{fs, path::PathBuf};
 
-use alpm::SigLevel;
+use alpm::{Alpm, SigLevel};
 
 use crate::AppState;
+
+#[derive(Debug)]
+pub struct AlpmState {
+    pub alpm: Alpm,
+    pub start_pkgs: Vec<AlpmPkg>,
+    pub pkg_selected: AlpmPkg,
+}
+
+impl AlpmState {
+    pub fn default() -> Self {
+        Self {
+            alpm: Alpm::new("/", "/var/lib/pacman").unwrap(),
+            start_pkgs: vec![],
+            pkg_selected: AlpmPkg::default(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct AlpmPkg {
@@ -18,7 +35,7 @@ impl AppState {
         self.register_dbs()?;
         let mut pkgs: Vec<AlpmPkg> = vec![];
 
-        for db in self.alpm.syncdbs() {
+        for db in self.alpm_state.alpm.syncdbs() {
             for pkg in db.pkgs() {
                 pkgs.push(AlpmPkg {
                     name: pkg.name().to_string(),
@@ -37,7 +54,7 @@ impl AppState {
 
     // fn search_pkg(&self) {}
 
-    // fn get_all_dbs(&self) -> anyhow::Result<Vec<String>> {
+    // fn get_all_dbs_name(&self) -> anyhow::Result<Vec<String>> {
     //     let mut dbs: Vec<String> = vec![];
     //     for db in self.alpm.syncdbs() {
     //         dbs.push(db.name().to_string());
@@ -47,11 +64,13 @@ impl AppState {
     // }
 
     fn register_dbs(&mut self) -> anyhow::Result<()> {
-        let dbs_path = get_alpm_dbs();
+        let dbs_path = get_alpm_dbs_path();
 
         if let Ok(dbs_path) = dbs_path {
             for db in dbs_path {
-                self.alpm.register_syncdb_mut(db, SigLevel::USE_DEFAULT)?;
+                self.alpm_state
+                    .alpm
+                    .register_syncdb_mut(db, SigLevel::USE_DEFAULT)?;
             }
         }
 
@@ -60,7 +79,7 @@ impl AppState {
 }
 
 // /var/lib/pacman/sync
-fn get_alpm_dbs() -> anyhow::Result<Vec<String>> {
+fn get_alpm_dbs_path() -> anyhow::Result<Vec<String>> {
     let path = PathBuf::from("/var/lib/pacman/sync");
     let mut dbs: Vec<String> = vec![];
     if let Ok(dir) = fs::read_dir(path) {
