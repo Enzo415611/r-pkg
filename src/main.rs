@@ -24,6 +24,8 @@ enum Message {
     PkgSelected(AlpmPkg),
     ResizePane(pane_grid::ResizeEvent),
     ClonePane(Option<Pane>),
+    SearchInputChanged(String),
+    SearchInputSubmit,
 }
 
 fn main() -> iced::Result {

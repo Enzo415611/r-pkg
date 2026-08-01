@@ -1,28 +1,70 @@
 use iced::{
-    Border, Color, Element,
+    Alignment, Border, Color, Element,
     Length::{Fill, Shrink},
-    Padding,
-    widget::{Scrollable, button, column, container, text},
+    widget::{
+        Scrollable, button, column, container, row,
+        scrollable::{Direction, Scrollbar},
+        space, text,
+    },
 };
 
 use crate::{AppState, Message};
 
 impl AppState {
     pub fn pkg_list_view(&self) -> Element<'_, Message> {
-        let column = column![].extend(self.alpm_state.start_pkgs.iter().map(|pkg| {
-            button(text(&pkg.name))
-                .on_press(Message::PkgSelected(pkg.to_owned()))
-                .style(|_, s| button_style(s))
-                .width(Shrink)
-                .into()
-        }));
-
-        container(Scrollable::new(column).width(Fill).height(Fill))
-            .width(Fill)
+        let column = column![
+            row![
+                column![row![text("Packages")]]
+                    .extend(self.alpm_state.pkg_list.iter().map(|pkg| {
+                        row![
+                            button(text(&pkg.name))
+                                .on_press(Message::PkgSelected(pkg.to_owned()))
+                                .style(|_, s| button_style(s))
+                                .width(Shrink)
+                        ]
+                        .into()
+                    }))
+                    .spacing(3.0),
+                column![row![text("Repositorys"), space()]]
+                    .align_x(Alignment::Center)
+                    .extend(self.alpm_state.pkg_list.iter().map(|pkg| {
+                        row![
+                            button(text(pkg.db.as_deref().unwrap_or_default()))
+                                .style(|_, s| button_style(s))
+                                .on_press(Message::PkgSelected(pkg.to_owned()))
+                        ]
+                        .into()
+                    }))
+                    .spacing(3.0),
+                column![row![text("Description"), space()]]
+                    .extend(self.alpm_state.pkg_list.iter().map(|pkg| {
+                        row![
+                            button(text(pkg.desc.as_deref().unwrap_or_default()))
+                                .style(|_, s| button_style(s))
+                                .on_press(Message::PkgSelected(pkg.to_owned()))
+                        ]
+                        .into()
+                    }))
+                    .spacing(3.0)
+            ]
+            .spacing(10.0)
             .height(Fill)
-            .padding(Padding::default().right(14.0))
-            .style(|_| container_style())
-            .into()
+        ]
+        .padding(5.0);
+
+        container(
+            Scrollable::new(column)
+                .direction(Direction::Both {
+                    vertical: Scrollbar::new(),
+                    horizontal: Scrollbar::new(),
+                })
+                .width(Fill)
+                .height(Fill),
+        )
+        .width(Fill)
+        .height(Fill)
+        .style(|_| container_style())
+        .into()
     }
 }
 
@@ -42,12 +84,21 @@ fn button_style(s: button::Status) -> button::Style {
     match s {
         button::Status::Hovered => button::Style {
             text_color: Color::WHITE,
-            background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.2))),
+            border: iced::Border {
+                color: Color::from_rgb8(65, 69, 89),
+                width: 1.0,
+                radius: iced::border::Radius::new(0),
+            },
+            background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.3))),
             ..Default::default()
         },
         _ => button::Style {
             text_color: Color::WHITE,
-            background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.1))),
+            border: iced::Border {
+                color: Color::from_rgb8(65, 69, 89),
+                width: 1.0,
+                radius: iced::border::Radius::new(0),
+            },
             ..Default::default()
         },
     }

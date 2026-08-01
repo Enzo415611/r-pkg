@@ -7,7 +7,8 @@ use crate::AppState;
 #[derive(Debug)]
 pub struct AlpmState {
     pub alpm: Alpm,
-    pub start_pkgs: Vec<AlpmPkg>,
+    pub start_pkg_list: Vec<AlpmPkg>,
+    pub pkg_list: Vec<AlpmPkg>,
     pub pkg_selected: AlpmPkg,
 }
 
@@ -15,7 +16,8 @@ impl AlpmState {
     pub fn default() -> Self {
         Self {
             alpm: Alpm::new("/", "/var/lib/pacman").unwrap(),
-            start_pkgs: vec![],
+            start_pkg_list: vec![],
+            pkg_list: vec![],
             pkg_selected: AlpmPkg::default(),
         }
     }
@@ -52,7 +54,24 @@ impl AppState {
         Ok(pkgs)
     }
 
-    // fn search_pkg(&self) {}
+    pub fn search_pkg_by_name(&self) -> Vec<AlpmPkg> {
+        let name = &self.ui_state.search_content;
+        let mut pkgs: Vec<AlpmPkg> = Vec::new();
+
+        for db in self.alpm_state.alpm.syncdbs() {
+            if let Ok(pkg) = db.pkg(name.to_owned()) {
+                pkgs.push(AlpmPkg {
+                    name: pkg.name().to_string(),
+                    db: Some(pkg.db().map(|db| db.name()).unwrap_or_default().to_string()),
+                    depends: pkg.depends().iter().map(|dep| dep.to_string()).collect(),
+                    desc: pkg.desc().map(|desc| desc.to_string()),
+                    size: pkg.size(),
+                    ..Default::default()
+                });
+            }
+        }
+        pkgs
+    }
 
     // fn get_all_dbs_name(&self) -> anyhow::Result<Vec<String>> {
     //     let mut dbs: Vec<String> = vec![];

@@ -1,5 +1,5 @@
 use iced::{
-    Alignment, Color, Element,
+    Alignment, Border, Color, Element,
     Length::Fill,
     widget::{button, column, container, row, text},
 };
@@ -23,7 +23,11 @@ impl AppState {
             .unwrap_or_default();
 
         let column = column![
-            row![button("X").on_press(Message::ClonePane(self.ui_state.pkg_selected_pane))],
+            row![
+                button("X")
+                    .style(|_, s| button_style(s))
+                    .on_press(Message::ClonePane(self.ui_state.pkg_selected_pane))
+            ],
             column![
                 text(&self.alpm_state.pkg_selected.name).size(25.0),
                 text(db),
@@ -32,8 +36,20 @@ impl AppState {
             ]
             .width(Fill)
             .align_x(Alignment::Center),
-        ];
-        container(column).into()
+        ]
+        .padding(5.0);
+        container(column).style(|_| container_style()).into()
+    }
+}
+
+fn container_style() -> container::Style {
+    container::Style {
+        border: Border {
+            color: Color::from_rgba8(83, 83, 83, 0.8),
+            width: 1.0,
+            ..Default::default()
+        },
+        ..Default::default()
     }
 }
 
@@ -41,11 +57,21 @@ fn button_style(s: button::Status) -> button::Style {
     match s {
         button::Status::Hovered => button::Style {
             text_color: Color::WHITE,
+            border: iced::Border {
+                color: Color::from_rgb8(65, 69, 89),
+                width: 1.0,
+                radius: iced::border::Radius::new(15.0),
+            },
             background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.3))),
             ..Default::default()
         },
         _ => button::Style {
             text_color: Color::WHITE,
+            border: iced::Border {
+                color: Color::from_rgb8(65, 69, 89),
+                width: 1.0,
+                radius: iced::border::Radius::new(15.0),
+            },
             ..Default::default()
         },
     }

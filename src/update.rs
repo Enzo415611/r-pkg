@@ -7,7 +7,8 @@ impl AppState {
         match message {
             Message::Init => {
                 if let Ok(pkgs) = self.sync_alpm_dbs() {
-                    self.alpm_state.start_pkgs = pkgs;
+                    self.alpm_state.start_pkg_list = pkgs;
+                    self.alpm_state.pkg_list = self.alpm_state.start_pkg_list.to_owned();
                 }
                 Task::none()
             }
@@ -34,6 +35,20 @@ impl AppState {
                     self.ui_state.pane_grid_state.close(pane);
                     self.ui_state.pkg_selected_pane = None;
                 }
+                Task::none()
+            }
+            Message::SearchInputChanged(text) => {
+                self.ui_state.search_content = text;
+                Task::none()
+            }
+            Message::SearchInputSubmit => {
+                if self.ui_state.search_content.is_empty() {
+                    self.alpm_state.pkg_list = self.alpm_state.start_pkg_list.to_owned();
+                } else {
+                    let pkgs = self.search_pkg_by_name();
+                    self.alpm_state.pkg_list = pkgs;
+                }
+
                 Task::none()
             }
         }
