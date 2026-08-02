@@ -38,7 +38,12 @@ impl AppState {
         let mut pkgs: Vec<AlpmPkg> = vec![];
 
         for db in self.alpm_state.alpm.syncdbs() {
+            let mut count_db = 0;
+
             for pkg in db.pkgs() {
+                if count_db >= 15 {
+                    break;
+                }
                 pkgs.push(AlpmPkg {
                     name: pkg.name().to_string(),
                     db: pkg.db().map(|db| db.name().to_string()),
@@ -46,8 +51,13 @@ impl AppState {
                     desc: pkg.desc().map(|d| d.to_string()),
                     size: pkg.size(),
                 });
+                count_db += 1;
+
+                if pkgs.len() >= 100 {
+                    break;
+                }
             }
-            if pkgs.iter().len() >= 100 {
+            if pkgs.len() >= 100 {
                 break;
             }
         }
