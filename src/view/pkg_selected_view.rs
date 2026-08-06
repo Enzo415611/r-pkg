@@ -32,7 +32,8 @@ impl AppState {
                 text(&self.alpm_state.pkg_selected.name).size(25.0),
                 text(db),
                 text(self.alpm_state.pkg_selected.size),
-                text(desc)
+                text(desc),
+                self.terminal_view()
             ]
             .width(Fill)
             .align_x(Alignment::Center),

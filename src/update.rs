@@ -51,6 +51,21 @@ impl AppState {
 
                 Task::none()
             }
+            Message::Terminal(event) => {
+                match event {
+                    iced_term::Event::BackendCall(_, cmd) => {
+                        match self
+                            .terminal
+                            .term
+                            .handle(iced_term::Command::ProxyToBackend(cmd))
+                        {
+                            _ => {}
+                        }
+                    }
+                    _ => {}
+                }
+                Task::none()
+            }
         }
     }
 }
