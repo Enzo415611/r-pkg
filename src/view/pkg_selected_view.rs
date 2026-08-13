@@ -8,19 +8,24 @@ use crate::{AppState, Message};
 
 impl AppState {
     pub fn pkg_selected_view(&self) -> Element<'_, Message> {
-        let db = self
-            .alpm_state
-            .pkg_selected
-            .db
-            .as_deref()
-            .unwrap_or_default();
+        let pkg_selected = &self.alpm_state.pkg_selected;
 
-        let desc = self
-            .alpm_state
-            .pkg_selected
-            .desc
-            .as_deref()
-            .unwrap_or_default();
+        let db = &pkg_selected.db.as_deref().unwrap_or_default();
+
+        let desc = &pkg_selected.desc.as_deref().unwrap_or_default();
+
+        let is_installed = if pkg_selected.is_installed {
+            "Uninstall"
+        } else {
+            "Install"
+        };
+
+        let install_pkg_button = button(is_installed).on_press_with(|| {
+            if pkg_selected.is_installed {
+                return Message::Uninstall;
+            }
+            return Message::InstallPkg;
+        });
 
         let column = column![
             row![
@@ -30,9 +35,10 @@ impl AppState {
             ],
             column![
                 text(&self.alpm_state.pkg_selected.name).size(25.0),
-                text(db),
+                text(*db),
                 text(self.alpm_state.pkg_selected.size),
-                text(desc),
+                text(*desc),
+                install_pkg_button,
                 self.terminal_view()
             ]
             .width(Fill)

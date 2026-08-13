@@ -41,6 +41,8 @@ enum Message {
     SearchInputChanged(String),
     SearchInputSubmit,
     Terminal(iced_term::Event),
+    InstallPkg,
+    Uninstall
 }
 
 fn main() -> iced::Result {

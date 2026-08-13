@@ -30,11 +30,14 @@ pub struct AlpmPkg {
     pub depends: Vec<String>,
     pub desc: Option<String>,
     pub size: i64,
+    pub is_installed: bool,
 }
 
 impl AppState {
     pub fn sync_alpm_dbs(&mut self) -> anyhow::Result<Vec<AlpmPkg>> {
         self.register_dbs()?;
+        self.pkg_is_installed("zzz");
+
         let mut pkgs: Vec<AlpmPkg> = vec![];
 
         for db in self.alpm_state.alpm.syncdbs() {
@@ -44,13 +47,17 @@ impl AppState {
                 if count_db >= 15 {
                     break;
                 }
+                let is_installed = self.pkg_is_installed(pkg.name());
+
                 pkgs.push(AlpmPkg {
                     name: pkg.name().to_string(),
                     db: pkg.db().map(|db| db.name().to_string()),
                     depends: pkg.depends().iter().map(|dep| dep.to_string()).collect(),
                     desc: pkg.desc().map(|d| d.to_string()),
                     size: pkg.size(),
+                    is_installed,
                 });
+
                 count_db += 1;
 
                 if pkgs.len() >= 100 {
@@ -70,13 +77,15 @@ impl AppState {
 
         for db in self.alpm_state.alpm.syncdbs() {
             if let Ok(pkg) = db.pkg(name.to_owned()) {
+                let is_installed = self.pkg_is_installed(pkg.name());
+
                 pkgs.push(AlpmPkg {
                     name: pkg.name().to_string(),
                     db: Some(pkg.db().map(|db| db.name()).unwrap_or_default().to_string()),
                     depends: pkg.depends().iter().map(|dep| dep.to_string()).collect(),
                     desc: pkg.desc().map(|desc| desc.to_string()),
                     size: pkg.size(),
-                    ..Default::default()
+                    is_installed,
                 });
             }
         }
@@ -105,6 +114,18 @@ impl AppState {
 
         Ok(())
     }
+
+
+    // usar HashSet para maior eficiencia
+    pub fn pkg_is_installed(&self, pkg_name: &str) -> bool {
+        let local_db = self.alpm_state.alpm.localdb();
+        for pkg in local_db.pkgs() {
+            if pkg.name() == pkg_name {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 // /var/lib/pacman/sync
@@ -122,6 +143,5 @@ fn get_alpm_dbs_path() -> anyhow::Result<Vec<String>> {
             }
         }
     }
-
     Ok(dbs)
 }

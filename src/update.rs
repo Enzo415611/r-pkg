@@ -66,6 +66,15 @@ impl AppState {
                 }
                 Task::none()
             }
+            Message::InstallPkg => {
+                let pkg_name = &self.alpm_state.pkg_selected.name;
+                let command = iced_term::Command::ProxyToBackend(iced_term::BackendCommand::Write(format!("sudo pacman -S {}", pkg_name).as_bytes().to_vec()));
+                self.terminal.term.handle(command); 
+                Task::none()
+            }
+            Message::Uninstall => {
+                Task::none()
+            }
         }
     }
 }
