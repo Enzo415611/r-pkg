@@ -14,7 +14,7 @@ impl Terminal {
             .to_string();
 
         #[cfg(windows)]
-        let system_shell = "cmd.exe".to;
+        let system_shell = "cmd.exe".to_string();
 
         let term_id = 0;
         let term_settings = iced_term::settings::Settings {
@@ -49,7 +49,7 @@ pub enum TerminalEvent {
 impl AppState {
     pub fn terminal_view(&self) -> Element<'_, Message> {
         container(iced_term::TerminalView::show(&self.terminal.term).map(Message::Terminal))
-            .width(Length::Fill)
+            .width(400.0)
             .height(Length::Fill)
             .into()
     }

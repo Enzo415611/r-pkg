@@ -1,14 +1,15 @@
-use std::{fs, path::PathBuf};
+use std::{collections::HashSet, fs, path::PathBuf};
 
-use alpm::{Alpm, SigLevel};
+use alpm::{Alpm, SigLevel, TransFlag};
+use iced::widget::sensor::Key;
 
 use crate::AppState;
 
 #[derive(Debug)]
 pub struct AlpmState {
     pub alpm: Alpm,
-    pub start_pkg_list: Vec<AlpmPkg>,
-    pub pkg_list: Vec<AlpmPkg>,
+    pub start_pkg_list: HashSet<AlpmPkg>,
+    pub pkg_list: HashSet<AlpmPkg>,
     pub pkg_selected: AlpmPkg,
 }
 
@@ -16,14 +17,14 @@ impl AlpmState {
     pub fn default() -> Self {
         Self {
             alpm: Alpm::new("/", "/var/lib/pacman").unwrap(),
-            start_pkg_list: vec![],
-            pkg_list: vec![],
+            start_pkg_list: HashSet::new(),
+            pkg_list: HashSet::new(),
             pkg_selected: AlpmPkg::default(),
         }
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq ,Eq, Hash)]
 pub struct AlpmPkg {
     pub name: String,
     pub db: Option<String>,
@@ -34,11 +35,10 @@ pub struct AlpmPkg {
 }
 
 impl AppState {
-    pub fn sync_alpm_dbs(&mut self) -> anyhow::Result<Vec<AlpmPkg>> {
+    pub fn sync_alpm_dbs(&mut self) -> anyhow::Result<HashSet<AlpmPkg>> {
         self.register_dbs()?;
-        self.pkg_is_installed("zzz");
 
-        let mut pkgs: Vec<AlpmPkg> = vec![];
+        let mut pkgs: HashSet<AlpmPkg> = HashSet::new();
 
         for db in self.alpm_state.alpm.syncdbs() {
             let mut count_db = 0;
@@ -49,7 +49,7 @@ impl AppState {
                 }
                 let is_installed = self.pkg_is_installed(pkg.name());
 
-                pkgs.push(AlpmPkg {
+                pkgs.insert(AlpmPkg {
                     name: pkg.name().to_string(),
                     db: pkg.db().map(|db| db.name().to_string()),
                     depends: pkg.depends().iter().map(|dep| dep.to_string()).collect(),
@@ -71,15 +71,20 @@ impl AppState {
         Ok(pkgs)
     }
 
-    pub fn search_pkg_by_name(&self) -> Vec<AlpmPkg> {
+//     pub fn sync(&mut self) -> anyhow::Result<()> {
+//         self.register_dbs()?;
+//         Ok(())
+//     }
+    
+    pub fn search_pkg_by_name(&mut self) -> HashSet<AlpmPkg> {
         let name = &self.ui_state.search_content;
-        let mut pkgs: Vec<AlpmPkg> = Vec::new();
+        let mut pkgs: HashSet<AlpmPkg> = HashSet::new();
 
         for db in self.alpm_state.alpm.syncdbs() {
             if let Ok(pkg) = db.pkg(name.to_owned()) {
                 let is_installed = self.pkg_is_installed(pkg.name());
 
-                pkgs.push(AlpmPkg {
+                pkgs.insert(AlpmPkg {
                     name: pkg.name().to_string(),
                     db: Some(pkg.db().map(|db| db.name()).unwrap_or_default().to_string()),
                     depends: pkg.depends().iter().map(|dep| dep.to_string()).collect(),
@@ -92,16 +97,7 @@ impl AppState {
         pkgs
     }
 
-    // fn get_all_dbs_name(&self) -> anyhow::Result<Vec<String>> {
-    //     let mut dbs: Vec<String> = vec![];
-    //     for db in self.alpm.syncdbs() {
-    //         dbs.push(db.name().to_string());
-    //     }
-
-    //     Ok(dbs)
-    // }
-
-    fn register_dbs(&mut self) -> anyhow::Result<()> {
+    pub fn register_dbs(&mut self) -> anyhow::Result<()> {
         let dbs_path = get_alpm_dbs_path();
 
         if let Ok(dbs_path) = dbs_path {
@@ -111,20 +107,41 @@ impl AppState {
                     .register_syncdb_mut(db, SigLevel::USE_DEFAULT)?;
             }
         }
-
         Ok(())
     }
 
-
-    // usar HashSet para maior eficiencia
     pub fn pkg_is_installed(&self, pkg_name: &str) -> bool {
-        let local_db = self.alpm_state.alpm.localdb();
-        for pkg in local_db.pkgs() {
-            if pkg.name() == pkg_name {
-                return true;
+        let alpm = Alpm::new("/", "/var/lib/pacman").unwrap();
+        let local_db = alpm.localdb();
+        local_db.pkg(pkg_name).is_ok()
+    }
+    
+    
+    
+    // Teste install fn
+    pub fn install_pkg(&mut self) -> anyhow::Result<()> {
+        let flags = TransFlag::DOWNLOAD_ONLY;
+        _ = self.alpm_state.alpm.trans_init(flags)?;
+        
+        // add pkg
+        for db in self.alpm_state.alpm.syncdbs() {
+            if let Ok(pkg) = db.pkg(self.alpm_state.pkg_selected.name.as_str()) {
+                self.alpm_state.alpm.trans_add_pkg(pkg);
+                break;
             }
         }
-        false
+        
+        
+        self.alpm_state.alpm.sync_sysupgrade(false);
+        
+        self.alpm_state.alpm.trans_prepare();
+        let install = self.alpm_state.alpm.trans_add();
+        println!("{:?}", install);
+        self.alpm_state.alpm.trans_commit()?;
+        
+        
+        
+        Ok(())
     }
 }
 

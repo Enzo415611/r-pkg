@@ -12,8 +12,11 @@ impl AppState {
                 }
                 Task::none()
             }
-            Message::PkgSelected(pkg_name) => {
-                self.alpm_state.pkg_selected = pkg_name;
+            Message::PkgSelected(mut pkg) => {
+                let is_installed = self.pkg_is_installed(&pkg.name);
+                pkg.is_installed = is_installed;
+                
+                self.alpm_state.pkg_selected = pkg;
                 if self.ui_state.pkg_selected_pane.is_none() {
                     if let Some((pane, _)) = self.ui_state.pane_grid_state.split(
                         pane_grid::Axis::Vertical,
@@ -57,9 +60,22 @@ impl AppState {
                         match self
                             .terminal
                             .term
-                            .handle(iced_term::Command::ProxyToBackend(cmd))
+                            .handle(iced_term::Command::ProxyToBackend(cmd.clone()))
                         {
-                            _ => {}
+                            _ => {
+                                match cmd {
+                                   iced_term::BackendCommand::ProcessAlacrittyEvent(event) => {
+                                       match event {
+                                           iced_term::AlacrittyEvent::PtyWrite(cm) => {
+                                               let is = self.pkg_is_installed(&self.alpm_state.pkg_selected.name);
+                                               self.alpm_state.pkg_selected.is_installed = is;
+                                           }
+                                           _ => {}
+                                       }
+                                   }
+                                   _ => {}
+                               }     
+                            }
                         }
                     }
                     _ => {}
@@ -67,12 +83,13 @@ impl AppState {
                 Task::none()
             }
             Message::InstallPkg => {
-                let pkg_name = &self.alpm_state.pkg_selected.name;
-                let command = iced_term::Command::ProxyToBackend(iced_term::BackendCommand::Write(format!("sudo pacman -S {}", pkg_name).as_bytes().to_vec()));
+                let command = iced_term::Command::ProxyToBackend(iced_term::BackendCommand::Write(format!("sudo pacman -S {}", &self.alpm_state.pkg_selected.name).as_bytes().to_vec()));
                 self.terminal.term.handle(command); 
                 Task::none()
             }
             Message::Uninstall => {
+                let command = iced_term::Command::ProxyToBackend(iced_term::BackendCommand::Write(format!("sudo pacman -R {}", &self.alpm_state.pkg_selected.name).as_bytes().to_vec()));
+                self.terminal.term.handle(command);
                 Task::none()
             }
         }

@@ -13,7 +13,7 @@ impl AppState {
         let db = &pkg_selected.db.as_deref().unwrap_or_default();
 
         let desc = &pkg_selected.desc.as_deref().unwrap_or_default();
-
+        
         let is_installed = if pkg_selected.is_installed {
             "Uninstall"
         } else {
