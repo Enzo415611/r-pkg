@@ -1,4 +1,3 @@
-mod pkg_list_view;
-mod pkg_selected_view;
-pub mod terminal;
 pub mod view;
+pub mod components;
+mod install_pkg_page;

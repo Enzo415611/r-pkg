@@ -13,7 +13,7 @@ impl AppState {
         let db = &pkg_selected.db.as_deref().unwrap_or_default();
 
         let desc = &pkg_selected.desc.as_deref().unwrap_or_default();
-        
+
         let is_installed = if pkg_selected.is_installed {
             "Uninstall"
         } else {
@@ -38,8 +38,7 @@ impl AppState {
                 text(*db),
                 text(self.alpm_state.pkg_selected.size),
                 text(*desc),
-                install_pkg_button,
-                self.terminal_view()
+                install_pkg_button
             ]
             .width(Fill)
             .align_x(Alignment::Center),

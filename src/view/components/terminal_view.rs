@@ -49,7 +49,7 @@ pub enum TerminalEvent {
 impl AppState {
     pub fn terminal_view(&self) -> Element<'_, Message> {
         container(iced_term::TerminalView::show(&self.terminal.term).map(Message::Terminal))
-            .width(400.0)
+            .width(Length::Fill)
             .height(Length::Fill)
             .into()
     }

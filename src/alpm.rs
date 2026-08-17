@@ -1,7 +1,6 @@
 use std::{collections::HashSet, fs, path::PathBuf};
 
-use alpm::{Alpm, SigLevel, TransFlag};
-use iced::widget::sensor::Key;
+use alpm::{Alpm, Db, SigLevel};
 
 use crate::AppState;
 
@@ -24,7 +23,7 @@ impl AlpmState {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq ,Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct AlpmPkg {
     pub name: String,
     pub db: Option<String>,
@@ -71,11 +70,6 @@ impl AppState {
         Ok(pkgs)
     }
 
-//     pub fn sync(&mut self) -> anyhow::Result<()> {
-//         self.register_dbs()?;
-//         Ok(())
-//     }
-    
     pub fn search_pkg_by_name(&mut self) -> HashSet<AlpmPkg> {
         let name = &self.ui_state.search_content;
         let mut pkgs: HashSet<AlpmPkg> = HashSet::new();
@@ -114,34 +108,6 @@ impl AppState {
         let alpm = Alpm::new("/", "/var/lib/pacman").unwrap();
         let local_db = alpm.localdb();
         local_db.pkg(pkg_name).is_ok()
-    }
-    
-    
-    
-    // Teste install fn
-    pub fn install_pkg(&mut self) -> anyhow::Result<()> {
-        let flags = TransFlag::DOWNLOAD_ONLY;
-        _ = self.alpm_state.alpm.trans_init(flags)?;
-        
-        // add pkg
-        for db in self.alpm_state.alpm.syncdbs() {
-            if let Ok(pkg) = db.pkg(self.alpm_state.pkg_selected.name.as_str()) {
-                self.alpm_state.alpm.trans_add_pkg(pkg);
-                break;
-            }
-        }
-        
-        
-        self.alpm_state.alpm.sync_sysupgrade(false);
-        
-        self.alpm_state.alpm.trans_prepare();
-        let install = self.alpm_state.alpm.trans_add();
-        println!("{:?}", install);
-        self.alpm_state.alpm.trans_commit()?;
-        
-        
-        
-        Ok(())
     }
 }
 

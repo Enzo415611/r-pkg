@@ -12,8 +12,8 @@ use iced::{
 use crate::{
     alpm::{AlpmPkg, AlpmState},
     view::{
-        terminal::{Terminal, TerminalEvent},
-        view::UiState,
+        components::terminal_view::Terminal,
+        view::{Pages, UiState},
     },
 };
 
@@ -35,6 +35,7 @@ impl fmt::Debug for AppState {
 #[derive(Debug, Clone)]
 enum Message {
     Init,
+    CurrentPage(Pages),
     PkgSelected(AlpmPkg),
     ResizePane(pane_grid::ResizeEvent),
     ClonePane(Option<Pane>),
@@ -42,7 +43,8 @@ enum Message {
     SearchInputSubmit,
     Terminal(iced_term::Event),
     InstallPkg,
-    Uninstall
+    Uninstall,
+    CancelPkg,
 }
 
 fn main() -> iced::Result {

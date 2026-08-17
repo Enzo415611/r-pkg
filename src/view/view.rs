@@ -11,10 +11,12 @@ use crate::{AppState, Message};
 
 #[derive(Debug)]
 pub struct UiState {
+    pub current_page: Pages,
     pub pane_grid_state: pane_grid::State<Panes>,
     pub pkg_list_pane: Pane,
     pub pkg_selected_pane: Option<Pane>,
     pub search_content: String,
+    pub install_mode: bool
 }
 
 impl UiState {
@@ -25,8 +27,16 @@ impl UiState {
             pkg_list_pane,
             pkg_selected_pane: None,
             search_content: String::new(),
+            current_page: Pages::Home,
+            install_mode: false
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum Pages {
+    Home,
+    InstallPkg
 }
 
 #[derive(Debug)]
@@ -54,7 +64,14 @@ impl AppState {
         .spacing(15.0)
         .on_resize(10, Message::ResizePane);
 
-        container(column![search_row, pane_grid_pkg].spacing(5.0).padding(4.0)).into()
+        match self.ui_state.current_page {
+            Pages::Home => {
+                container(column![search_row, pane_grid_pkg].spacing(5.0).padding(4.0)).into()
+            }
+            Pages::InstallPkg => {
+                container(self.install_pkg_page()).into()
+            }
+        }
     }
 }
 
