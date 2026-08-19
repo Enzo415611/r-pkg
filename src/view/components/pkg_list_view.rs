@@ -8,7 +8,7 @@ use iced::{
     },
 };
 
-use crate::{AppState, Message};
+use crate::{AppState, Message, view::style::style::pkg_list_button_style};
 
 impl AppState {
     pub fn pkg_list_view(&self) -> Element<'_, Message> {
@@ -19,7 +19,7 @@ impl AppState {
                         row![
                             button(text(&pkg.name))
                                 .on_press(Message::PkgSelected(pkg.to_owned()))
-                                .style(|_, s| button_style(s))
+                                .style(|_, s| pkg_list_button_style(s))
                                 .width(Shrink)
                         ]
                         .into()
@@ -30,7 +30,7 @@ impl AppState {
                     .extend(self.alpm_state.pkg_list.iter().map(|pkg| {
                         row![
                             button(text(pkg.db.as_deref().unwrap_or_default()))
-                                .style(|_, s| button_style(s))
+                                .style(|_, s| pkg_list_button_style(s))
                                 .on_press(Message::PkgSelected(pkg.to_owned()))
                         ]
                         .into()
@@ -40,7 +40,7 @@ impl AppState {
                     .extend(self.alpm_state.pkg_list.iter().map(|pkg| {
                         row![
                             button(text(pkg.desc.as_deref().unwrap_or_default()))
-                                .style(|_, s| button_style(s))
+                                .style(|_, s| pkg_list_button_style(s))
                                 .on_press(Message::PkgSelected(pkg.to_owned()))
                         ]
                         .into()
@@ -77,29 +77,5 @@ fn container_style() -> container::Style {
             ..Default::default()
         },
         ..Default::default()
-    }
-}
-
-fn button_style(s: button::Status) -> button::Style {
-    match s {
-        button::Status::Hovered => button::Style {
-            text_color: Color::WHITE,
-            border: iced::Border {
-                color: Color::from_rgb8(65, 69, 89),
-                width: 1.0,
-                radius: iced::border::Radius::new(0),
-            },
-            background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.3))),
-            ..Default::default()
-        },
-        _ => button::Style {
-            text_color: Color::WHITE,
-            border: iced::Border {
-                color: Color::from_rgb8(65, 69, 89),
-                width: 1.0,
-                radius: iced::border::Radius::new(0),
-            },
-            ..Default::default()
-        },
     }
 }

@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fs, path::PathBuf};
 
-use alpm::{Alpm, Db, SigLevel};
+use alpm::{Alpm, SigLevel};
 
 use crate::AppState;
 

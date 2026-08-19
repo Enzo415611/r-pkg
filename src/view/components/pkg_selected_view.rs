@@ -1,10 +1,13 @@
 use iced::{
-    Alignment, Border, Color, Element,
+    Alignment, Element,
     Length::Fill,
     widget::{button, column, container, row, text},
 };
 
-use crate::{AppState, Message};
+use crate::{
+    AppState, Message,
+    view::style::style::{button_style, container_style},
+};
 
 impl AppState {
     pub fn pkg_selected_view(&self) -> Element<'_, Message> {
@@ -20,12 +23,14 @@ impl AppState {
             "Install"
         };
 
-        let install_pkg_button = button(is_installed).on_press_with(|| {
-            if pkg_selected.is_installed {
-                return Message::Uninstall;
-            }
-            return Message::InstallPkg;
-        });
+        let install_pkg_button = button(is_installed)
+            .style(|_, s| button_style(s))
+            .on_press_with(|| {
+                if pkg_selected.is_installed {
+                    return Message::Uninstall;
+                }
+                return Message::InstallPkg;
+            });
 
         let column = column![
             row![
@@ -45,40 +50,5 @@ impl AppState {
         ]
         .padding(5.0);
         container(column).style(|_| container_style()).into()
-    }
-}
-
-fn container_style() -> container::Style {
-    container::Style {
-        border: Border {
-            color: Color::from_rgba8(83, 83, 83, 0.8),
-            width: 1.0,
-            ..Default::default()
-        },
-        ..Default::default()
-    }
-}
-
-fn button_style(s: button::Status) -> button::Style {
-    match s {
-        button::Status::Hovered => button::Style {
-            text_color: Color::WHITE,
-            border: iced::Border {
-                color: Color::from_rgb8(65, 69, 89),
-                width: 1.0,
-                radius: iced::border::Radius::new(15.0),
-            },
-            background: Some(iced::Background::Color(Color::WHITE.scale_alpha(0.3))),
-            ..Default::default()
-        },
-        _ => button::Style {
-            text_color: Color::WHITE,
-            border: iced::Border {
-                color: Color::from_rgb8(65, 69, 89),
-                width: 1.0,
-                radius: iced::border::Radius::new(15.0),
-            },
-            ..Default::default()
-        },
     }
 }

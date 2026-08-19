@@ -16,7 +16,6 @@ pub struct UiState {
     pub pkg_list_pane: Pane,
     pub pkg_selected_pane: Option<Pane>,
     pub search_content: String,
-    pub install_mode: bool
 }
 
 impl UiState {
@@ -28,7 +27,6 @@ impl UiState {
             pkg_selected_pane: None,
             search_content: String::new(),
             current_page: Pages::Home,
-            install_mode: false
         }
     }
 }
