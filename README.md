@@ -30,3 +30,5 @@ Para executar o aplicativo:
 
 Para compilar o projeto:
 - Rust + Cargo
+
+<img width="1920" height="1046" alt="Imagem colada" src="https://github.com/user-attachments/assets/b78ef7ac-72b7-4fbd-bfff-da86190aef77" />
