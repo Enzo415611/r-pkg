@@ -40,8 +40,8 @@ impl AppState {
             ],
             column![
                 text(&self.alpm_state.pkg_selected.name).size(25.0),
-                text(*db),
-                text(self.alpm_state.pkg_selected.size),
+                text(format!("repository: {}", *db)),
+                text(format!("size: {}", self.alpm_state.pkg_selected.size)),
                 text(*desc),
                 install_pkg_button
             ]

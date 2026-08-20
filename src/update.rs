@@ -77,6 +77,7 @@ impl AppState {
                                                 &self.alpm_state.pkg_selected.name,
                                             );
                                             if is != self.alpm_state.pkg_selected.is_installed {
+                                                self.alpm_state.pkg_selected.is_installed = is;
                                                 self.terminal
                                                     .term
                                                     .handle(iced_term::Command::ProxyToBackend(
